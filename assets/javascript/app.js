@@ -21,6 +21,11 @@ $(document).ready(function () {
         var date = $('#date-input').val().trim();
         var rate = $('#rate-input').val().trim();
 
+        var convertedDate = moment(date,'YYYY-MM-DD');
+        var dateAdded = firebase.database.ServerValue.TIMESTAMP;
+
+        var monthsWorked = moment(dateAdded).diff(convertedDate,'months');
+
         $('#name-input').val('');
         $('#role-input').val('');
         $('#date-input').val('');
@@ -38,8 +43,10 @@ $(document).ready(function () {
             role: role,
             date: date,
             rate: rate,
-            dateAdded: firebase.database.ServerValue.TIMESTAMP
+            dateAdded: dateAdded,
+            monthsWorked: monthsWorked
         });
+
   
     });
 
@@ -51,8 +58,9 @@ function addInfo(){
     database.ref().on('child_added', function(snapshot) {
 
         var sv = snapshot.val();
-
-        var tMonths = sv.dateAdded - sv.date;
+        console.log(typeof sv.date);
+        var dateToUnix = new Date(sv.date).getTime() / 1000;
+        var tMonths = (sv.dateAdded - dateToUnix)/2629743;
         console.log(tMonths);
 
         console.log(sv.name);
@@ -60,15 +68,17 @@ function addInfo(){
         console.log(sv.date);
         console.log(sv.rate);
         console.log(sv.dateAdded);
+        console.log(sv.monthsWorked);
 
         var row = $('<tr>');
         var tName = $('<td>').text(sv.name);
         var tRole = $('<td>').text(sv.role);
         var tDate = $('<td>').text(sv.date);
         var tRate = $('<td>').text(sv.rate);
+        var tWorked = $('<td>').text(sv.monthsWorked);
 
         
-        row.append(tName).append(tRole).append(tDate).append(tRate);
+        row.append(tName).append(tRole).append(tDate).append(tRate).append(tWorked);
         $('#table').append(row);
     })
 }
